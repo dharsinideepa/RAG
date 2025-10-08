@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  legal-rag:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./legal_documents:/app/legal_documents
+      - ./legal_vectordb:/app/legal_vectordb
+      - ./index.html:/app/index.html:ro
+      - ./api.py:/app/api.py:ro
+      - ./simple_rag.py:/app/simple_rag.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+      
+    environment:
+      - TOGETHER_API_KEY=f0bede9bb2af9368add296406997dc4fc7643a6aa3acf2b91ae49b005b14953c
+    restart: unless-stopped
+    
+    # Run the container as root to ensure write permissions
+    user: "0:0"
+    
+    # Add initialization command to set proper permissions
+    command: >
+      bash -c "
+        chmod -R 777 /app/legal_documents /app/legal_vectordb &&
+        uvicorn api:app --host 0.0.0.0 --port 8000
+      "
